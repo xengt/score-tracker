@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Score Keeper</title>
+  <meta name="theme-color" content="#121212" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121212">
+
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <style>
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --row-alt: #26262a;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #3b82f6;
+      --danger: #ef4444;
+      --border: #2e2e32;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: env(safe-area-inset-top, 16px) 12px env(safe-area-inset-bottom, 24px);
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      margin: 0;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    button.danger {
+      color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .add-player-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    input[type="text"], input[type="number"] {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .add-player-bar input {
+      flex: 1;
+    }
+
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+      gap: 10px;
+      align-items: start;
+    }
+
+    .player-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .player-name {
+      font-size: 1rem;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .remove-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.95rem;
+      padding: 2px 4px;
+      flex-shrink: 0;
+    }
+
+    .score-list {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 4px;
+      min-height: 120px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score-item {
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 4px 6px;
+      border-radius: 6px;
+      background: var(--row-alt);
+    }
+
+    .score-placeholder {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .total-section {
+      text-align: center;
+    }
+
+    .total-btn {
+      width: 100%;
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: white;
+    }
+
+    .total-value {
+      display: none;
+      background: var(--row-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #60a5fa;
+      font-variant-numeric: tabular-nums;
+      margin-top: 6px;
+    }
+
+    .total-value.visible {
+      display: block;
+    }
+
+    .custom-score-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .custom-score-row input {
+      width: 100%;
+      text-align: center;
+      font-size: 1rem;
+      padding: 8px 6px;
+      background: var(--bg);
+    }
+
+    .custom-score-row button {
+      width: 100%;
+      padding: 8px 0;
+      font-size: 0.9rem;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 20px;
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px dashed var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Score Keeper</h1>
+    <div class="top-actions">
+      <button type="button" id="undoBtn" disabled>Undo</button>
+      <button type="button" class="danger" id="resetBtn">Reset</button>
+    </div>
+  </header>
+
+  <form class="add-player-bar" id="addPlayerForm">
+    <input type="text" id="playerNameInput" placeholder="Enter player name..." autocomplete="off" />
+    <button type="submit" class="primary">Add</button>
+  </form>
+
+  <div id="playersContainer" class="players-grid"></div>
+
+  <script>
+    const STORAGE_KEY = 'bg_score_tracker_list_v1';
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.players) && Array.isArray(parsed.history)) {
+            parsed.players.forEach(p => {
+              if (typeof p.totalVisible !== 'boolean') {
+                p.totalVisible = false;
+              }
+            });
+            return parsed;
+          }
+        }
+      } catch (e) {}
+
+      return {
+        players: [
+          { id: 'p1', name: 'Player 1', scores: [], totalVisible: false },
+          { id: 'p2', name: 'Player 2', scores: [], totalVisible: false }
+        ],
+        history: []
+      };
+    }
+
+    let state = loadState();
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+      render();
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    function getTotal(player) {
+      return player.scores.reduce((sum, score) => sum + Number(score), 0);
+    }
+
+    function addScore(id, rawVal) {
+      const cleaned = rawVal.trim();
+      if (!cleaned) return;
+
+      const amount = Number(cleaned);
+      if (!Number.isFinite(amount)) return;
+
+      const player = state.players.find(p => p.id === id);
+      if (!player) return;
+
+      player.scores.push(amount);
+      state.history.push(id);
+
+      if (state.history.length > 50) state.history.shift();
+
+      saveState();
+
+      const listEl = document.getElementById('list-' + id);
+      if (listEl) listEl.scrollTop = listEl.scrollHeight;
+    }
+
+    function render() {
+      const container = document.getElementById('playersContainer');
+      const undoBtn = document.getElementById('undoBtn');
+
+      undoBtn.disabled = state.history.length === 0;
+
+      if (state.players.length === 0) {
+        container.innerHTML = '<div class="empty-state">Add players above to start tracking scores.</div>';
+        return;
+      }
+
+      container.innerHTML = state.players.map(p => {
+        const scoresHtml = p.scores.length === 0
+          ? '<div class="score-placeholder">0</div>'
+          : p.scores.map(val => `<div class="score-item">${val}</div>`).join('');
+
+        const total = getTotal(p);
+
+        return `
+          <div class="player-card">
+            <div class="player-header">
+              <span class="player-name" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span>
+              <button type="button" class="remove-btn" data-remove-id="${escapeHtml(p.id)}" title="Remove player">✕</button>
+            </div>
+
+            <div class="score-list" id="list-${escapeHtml(p.id)}">
+              ${scoresHtml}
+            </div>
+
+            <form class="custom-score-row" data-score-form="${escapeHtml(p.id)}">
+              <input type="number" step="any" placeholder="± pts" inputmode="decimal" />
+              <button type="submit" class="primary">Add</button>
+            </form>
+
+            <div class="total-section">
+              <button type="button" class="total-btn" data-total-id="${escapeHtml(p.id)}">
+                TOTAL
+              </button>
+              <div class="total-value ${p.totalVisible ? 'visible' : ''}">
+                ${total}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('addPlayerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const input = document.getElementById('playerNameInput');
+      const name = input.value.trim();
+
+      if (!name) return;
+
+      state.players.push({
+        id: 'p' + Date.now(),
+        name: name,
+        scores: [],
+        totalVisible: false
+      });
+
+      input.value = '';
+      saveState();
+    });
+
+    document.getElementById('undoBtn').addEventListener('click', function() {
+      const lastPlayerId = state.history.pop();
+      if (!lastPlayerId) return;
+
+      const player = state.players.find(p => p.id === lastPlayerId);
+
+      if (player && player.scores.length > 0) {
+        player.scores.pop();
+      }
+
+      saveState();
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function() {
+      if (!confirm('Clear all scores?')) return;
+
+      state.players.forEach(p => {
+        p.scores = [];
+        p.totalVisible = false;
+      });
+
+      state.history = [];
+      saveState();
+    });
+
+    document.getElementById('playersContainer').addEventListener('submit', function(e) {
+      const playerId = e.target.getAttribute('data-score-form');
+
+      if (!playerId) return;
+
+      e.preventDefault();
+
+      const input = e.target.querySelector('input');
+      addScore(playerId, input.value);
+      input.value = '';
+    });
+
+    document.getElementById('playersContainer').addEventListener('click', function(e) {
+      const totalId = e.target.closest('[data-total-id]')?.getAttribute('data-total-id');
+
+      if (totalId) {
+        const player = state.players.find(p => p.id === totalId);
+        if (player) {
+          player.totalVisible = !player.totalVisible;
+          saveState();
+        }
+        return;
+      }
+
+      const removeId = e.target.closest('[data-remove-id]')?.getAttribute('data-remove-id');
+
+      if (removeId) {
+        state.players = state.players.filter(p => p.id !== removeId);
+        state.history = state.history.filter(id => id !== removeId);
+        saveState();
+      }
+    });
+
+    render();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .catch(error => console.error('Service Worker registration failed:', error));
+      });
+    }
+  </script>
+</body>
+</html>
